@@ -119,6 +119,7 @@ pub fn Icons() -> impl IntoView {
             .and_then(|k| Collection::from_key(&k))
             .unwrap_or(Collection::Lucide),
     );
+    let initial_collection = collection.get_untracked();
     let search = RwSignal::new(query.get().get("q").unwrap_or_default());
     let size_px = RwSignal::new(
         query
@@ -132,7 +133,7 @@ pub fn Icons() -> impl IntoView {
             .get()
             .get("sw")
             .and_then(|s| s.parse::<f64>().ok())
-            .unwrap_or(1.5),
+            .unwrap_or_else(|| initial_collection.default_stroke_width()),
     );
     let color = RwSignal::new(query.get().get("color").unwrap_or_default());
     let category = RwSignal::new(query.get().get("cat").unwrap_or_default());
@@ -161,6 +162,9 @@ pub fn Icons() -> impl IntoView {
     });
 
     let is_lucide = move || collection.get() == Collection::Lucide;
+    // Stroke-based collections expose a stroke-width control; fill-based
+    // collections (Radix, MDI, Bootstrap, Simple Icons, crypto) ignore it.
+    let is_stroke_style = move || collection.get().style() == "stroke";
 
     let filtered = Memo::new(move |_| {
         let s = search.get().to_lowercase();
@@ -295,6 +299,24 @@ pub fn Icons() -> impl IntoView {
             sync();
         }
     };
+    let on_color_pick = {
+        let sync = sync_url.clone();
+        move |e: leptos::ev::Event| {
+            let val = event_target_value(&e);
+            if !val.is_empty() {
+                color.set(val);
+                sync();
+            }
+        }
+    };
+    let picker_val = move || {
+        let c = color.get();
+        if c.starts_with('#') && c.len() >= 4 {
+            c
+        } else {
+            "#f97316".to_string()
+        }
+    };
     let on_color_reset = {
         let sync = sync_url.clone();
         move |_: leptos::ev::MouseEvent| {
@@ -335,6 +357,11 @@ pub fn Icons() -> impl IntoView {
     let sw_val = Signal::derive(move || format!("{:.2}", stroke_w.get()));
     let mru_visible =
         move || search.get().is_empty() && category.get().is_empty();
+
+    let prev_disabled = move || page.get() <= 1;
+    let next_disabled = move || page.get() >= total_pages.get();
+    let go_prev = move |_| page.update(|p| *p = p.saturating_sub(1));
+    let go_next = move |_| page.update(|p| *p = (*p + 1).min(total_pages.get()));
 
     let anim_choices = [
         ("auto", "Auto"),
@@ -388,7 +415,12 @@ pub fn Icons() -> impl IntoView {
                                         }
                                         on:click={
                                             let sync = sync_url.clone();
-                                            move |_| { collection.set(c); category.set(String::new()); sync(); }
+                                            move |_| {
+                                                collection.set(c);
+                                                stroke_w.set(c.default_stroke_width());
+                                                category.set(String::new());
+                                                sync();
+                                            }
                                         }
                                     >
                                         <span>{label}</span>
@@ -434,6 +466,7 @@ pub fn Icons() -> impl IntoView {
                                         prop:value=move || format!("{:.2}", stroke_w.get())
                                         on:change=on_stroke_input
                                         title="0.5–3"
+                                        disabled=move || !is_stroke_style()
                                     />
                                 </span>
                                 <input
@@ -441,9 +474,13 @@ pub fn Icons() -> impl IntoView {
                                     min="0.5"
                                     max="3"
                                     step="0.25"
-                                    class="icon-range mt-1"
+                                    class=move || {
+                                        let base = "icon-range mt-1";
+                                        if is_stroke_style() { base.to_string() } else { format!("{base} opacity-40") }
+                                    }
                                     prop:value=move || stroke_w.get().to_string()
                                     on:input=on_stroke_w
+                                    disabled=move || !is_stroke_style()
                                 />
                             </label>
                             <label class="block">
@@ -457,14 +494,24 @@ pub fn Icons() -> impl IntoView {
                                         "reset"
                                     </button>
                                 </span>
-                                <input
-                                    type="text"
-                                    spellcheck="false"
-                                    placeholder="#f97316"
-                                    class="h-8 w-full rounded-md border border-input bg-background px-2 font-mono text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                    prop:value=color
-                                    on:input=on_color
-                                />
+                                <div class="flex items-center gap-2">
+                                    <input
+                                        type="color"
+                                        class="h-8 w-9 shrink-0 cursor-pointer rounded-md border border-input bg-transparent p-0.5"
+                                        prop:value=picker_val
+                                        on:input=on_color_pick
+                                        title="Pick a color"
+                                        aria-label="Pick a color"
+                                    />
+                                    <input
+                                        type="text"
+                                        spellcheck="false"
+                                        placeholder="#f97316"
+                                        class="h-8 w-full rounded-md border border-input bg-background px-2 font-mono text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        prop:value=color
+                                        on:input=on_color
+                                    />
+                                </div>
                                 <p class="mt-1 text-[10px] text-muted-foreground">
                                     "hex, rgb() or hsl()"
                                 </p>
@@ -636,8 +683,8 @@ pub fn Icons() -> impl IntoView {
                     <button
                         type="button"
                         class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-40"
-                        disabled=move || page.get() <= 1
-                        on:click=move |_| page.update(|p| *p = p.saturating_sub(1))
+                        disabled=prev_disabled
+                        on:click=go_prev
                     >
                         "Previous"
                     </button>
@@ -672,8 +719,8 @@ pub fn Icons() -> impl IntoView {
                     <button
                         type="button"
                         class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium transition-colors hover:bg-accent disabled:pointer-events-none disabled:opacity-40"
-                        disabled=move || page.get() >= total_pages.get()
-                        on:click=move |_| page.update(|p| *p = (*p + 1).min(total_pages.get()))
+                        disabled=next_disabled
+                        on:click=go_next
                     >
                         "Next"
                     </button>
@@ -899,7 +946,7 @@ fn AnimatedGlyphView(
     };
     let sw_ok = move || {
         if is_fill {
-            "1.5".to_string()
+            String::new()
         } else {
             let s = stroke_width.get();
             if s.is_empty() {

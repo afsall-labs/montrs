@@ -87,6 +87,9 @@ pub enum Collection {
     Iconoir,
     Phosphor,
     Mdi,
+    Bootstrap,
+    SimpleIcons,
+    Cryptocurrency,
 }
 
 impl Collection {
@@ -103,6 +106,12 @@ impl Collection {
         Collection::Phosphor,
         #[cfg(feature = "col-mdi")]
         Collection::Mdi,
+        #[cfg(feature = "col-bootstrap")]
+        Collection::Bootstrap,
+        #[cfg(feature = "col-simple-icons")]
+        Collection::SimpleIcons,
+        #[cfg(feature = "col-cryptocurrency")]
+        Collection::Cryptocurrency,
     ];
 
     pub fn label(self) -> &'static str {
@@ -124,6 +133,9 @@ impl Collection {
             Collection::Iconoir => "iconoir",
             Collection::Phosphor => "phosphor",
             Collection::Mdi => "mdi",
+            Collection::Bootstrap => "bootstrap",
+            Collection::SimpleIcons => "simple-icons",
+            Collection::Cryptocurrency => "cryptocurrency",
         }
     }
 
@@ -132,10 +144,14 @@ impl Collection {
     pub fn style(self) -> &'static str {
         match self {
             Collection::Lucide
-            | Collection::Radix
             | Collection::Tabler
-            | Collection::Iconoir => "stroke",
-            Collection::Phosphor | Collection::Mdi => "fill",
+            | Collection::Iconoir
+            | Collection::Phosphor => "stroke",
+            Collection::Radix
+            | Collection::Mdi
+            | Collection::Bootstrap
+            | Collection::SimpleIcons
+            | Collection::Cryptocurrency => "fill",
         }
     }
 
@@ -144,7 +160,7 @@ impl Collection {
     pub fn default_stroke_width(self) -> f64 {
         match self {
             Collection::Tabler => 2.0,
-            Collection::Radix => 1.2,
+            Collection::Radix => 0.5,
             _ => 1.5,
         }
     }
@@ -195,6 +211,18 @@ impl Collection {
             }
             #[cfg(feature = "col-mdi")]
             Collection::Mdi => table(crate::collections::data::MDI_ICONS),
+            #[cfg(feature = "col-bootstrap")]
+            Collection::Bootstrap => {
+                table(crate::collections::data::BOOTSTRAP_ICONS)
+            }
+            #[cfg(feature = "col-simple-icons")]
+            Collection::SimpleIcons => {
+                table(crate::collections::data::SIMPLE_ICONS_ICONS)
+            }
+            #[cfg(feature = "col-cryptocurrency")]
+            Collection::Cryptocurrency => {
+                table(crate::collections::data::CRYPTOCURRENCY_ICONS)
+            }
             _ => Vec::new(),
         }
     }
@@ -218,6 +246,18 @@ impl Collection {
             }
             #[cfg(feature = "col-mdi")]
             Collection::Mdi => crate::collections::data::MDI_ICONS.len(),
+            #[cfg(feature = "col-bootstrap")]
+            Collection::Bootstrap => {
+                crate::collections::data::BOOTSTRAP_ICONS.len()
+            }
+            #[cfg(feature = "col-simple-icons")]
+            Collection::SimpleIcons => {
+                crate::collections::data::SIMPLE_ICONS_ICONS.len()
+            }
+            #[cfg(feature = "col-cryptocurrency")]
+            Collection::Cryptocurrency => {
+                crate::collections::data::CRYPTOCURRENCY_ICONS.len()
+            }
             _ => 0,
         }
     }

@@ -54,7 +54,6 @@ pub fn Header() -> impl IntoView {
     });
 
     let nav_links = [
-        ("/", "Home"),
         ("/auth", "Auth"),
         ("/runtime", "Runtime"),
         ("/ai", "AI Kit"),
@@ -64,6 +63,7 @@ pub fn Header() -> impl IntoView {
     ];
 
     let ui_links = [
+        ("/ui", "MontRS UI"),
         ("/ui/components", "Components"),
         ("/ui/blocks", "Blocks"),
         ("/ui/icons", "Icons"),
@@ -99,6 +99,17 @@ pub fn Header() -> impl IntoView {
                             "MontRS"
                         </a>
                         <nav class="hidden items-center gap-1 text-sm md:flex">
+                            <a
+                                href="/"
+                                class="rounded-md px-3 py-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                                on:click={
+                                    let nav = navigate.clone();
+                                    move |ev| {
+                                        ev.prevent_default();
+                                        nav("/", Default::default());
+                                    }
+                                }
+                            >"Home"</a>
                             <div class="relative">
                                 <button
                                     type="button"
@@ -243,7 +254,9 @@ pub fn Header() -> impl IntoView {
                                 on:click=move |_| mobile_open.set(false)
                             ></div>
                             <div class="absolute right-0 top-12 z-50 w-44 rounded-md border border-border bg-popover p-1 shadow-lg md:hidden">
-                                {nav_links.into_iter().map(|(href, label)| {
+                                {core::iter::once(("/", "Home"))
+                                    .chain(nav_links.iter().copied())
+                                    .map(|(href, label)| {
                                     let nav = navigate.clone();
                                     let close_menu = mobile_open;
                                     view! {

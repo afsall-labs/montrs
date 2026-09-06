@@ -73,9 +73,6 @@ pub fn AnimatedSvg(
     #[prop(into, optional)]
     profile: Signal<Option<AnimationProfile>>,
 ) -> impl IntoView {
-    let profile =
-        Memo::new(move |_| profile.get().unwrap_or(AnimationProfile::PathDraw));
-
     let svg_text = svg;
     let class_val = class;
     let size_val = size;
@@ -83,6 +80,19 @@ pub fn AnimatedSvg(
     let stroke_val = stroke;
     let sw = stroke_width;
     let viewbox_val = viewbox;
+
+    // Fill-mode collections (Radix, MDI, Bootstrap, Simple Icons, …) carry
+    // `stroke="none"` in their data; they should not get a stroke width and
+    // default to a visible (non-draw) animation.
+    let stroke_prof = stroke_val.clone();
+    let profile =
+        Memo::new(move |_| profile.get().unwrap_or_else(|| {
+            if stroke_prof.get() == "none" {
+                AnimationProfile::Pulse
+            } else {
+                AnimationProfile::PathDraw
+            }
+        }));
 
     // Empty props (omitted) fall back to the Lucide defaults.
     let size_ok = move || {
@@ -102,20 +112,32 @@ pub fn AnimatedSvg(
             s.to_string()
         }
     };
+    let stroke_detect = stroke_val.clone();
+    let stroke_color = stroke_val.clone();
     let stroke_ok = move || {
-        let s = stroke_val.get();
-        if s.is_empty() {
-            "currentColor".to_string()
+        if stroke_detect.get() == "none" {
+            String::new()
         } else {
-            s.to_string()
+            let s = stroke_color.get();
+            if s.is_empty() {
+                "currentColor".to_string()
+            } else {
+                s.to_string()
+            }
         }
     };
+    let sw_stroke = stroke_val.clone();
+    let sw_color = sw.clone();
     let sw_ok = move || {
-        let s = sw.get();
-        if s.is_empty() {
-            DEFAULT_STROKE_WIDTH.to_string()
+        if sw_stroke.get() == "none" {
+            String::new()
         } else {
-            s.to_string()
+            let s = sw_color.get();
+            if s.is_empty() {
+                DEFAULT_STROKE_WIDTH.to_string()
+            } else {
+                s.to_string()
+            }
         }
     };
     let viewbox_ok = move || {
