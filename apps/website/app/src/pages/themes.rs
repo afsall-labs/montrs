@@ -30,12 +30,16 @@
 
 use crate::components::ThemeCustomizer;
 use leptos::prelude::*;
-use montrs_ui::components::badge::{Badge, BadgeVariant};
-use montrs_ui::components::button::{Button, ButtonVariant};
-use montrs_ui::components::card::{Card, CardContent, CardHeader, CardTitle};
-use montrs_ui::components::input::Input;
-use montrs_ui::components::switch::Switch;
-use montrs_ui::prelude::*;
+use montrs_ui::{
+    components::{
+        badge::{Badge, BadgeVariant},
+        button::{Button, ButtonVariant},
+        card::{Card, CardContent, CardHeader, CardTitle},
+        input::Input,
+        switch::Switch,
+    },
+    prelude::*,
+};
 
 #[component]
 pub fn Themes() -> impl IntoView {

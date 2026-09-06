@@ -45,7 +45,8 @@ pub fn Icon(
     #[prop(into, optional)] stroke: Option<TextProp>,
     #[prop(into, optional)] stroke_width: Option<TextProp>,
     /// Override the view-box (defaults to "0 0 24 24").
-    #[prop(into, optional)] viewbox: Option<TextProp>,
+    #[prop(into, optional)]
+    viewbox: Option<TextProp>,
 ) -> impl IntoView {
     let svg = TextProp::from(move || glyph.get().svg());
     render_svg(svg, class, size, fill, stroke, stroke_width, viewbox)
@@ -60,7 +61,8 @@ pub fn CustomIcon(
     #[prop(into, optional)] stroke: Option<TextProp>,
     #[prop(into, optional)] stroke_width: Option<TextProp>,
     /// Override the view-box (defaults to "0 0 24 24").
-    #[prop(into, optional)] viewbox: Option<TextProp>,
+    #[prop(into, optional)]
+    viewbox: Option<TextProp>,
 ) -> impl IntoView {
     render_svg(svg, class, size, fill, stroke, stroke_width, viewbox)
 }

@@ -1,4 +1,4 @@
-﻿// Ø¨ÙØ³Ù’Ù…Ù Ø§Ù„Ù„ÙŽÙ‘Ù‡Ù Ø§Ù„Ø±ÙŽÙ‘Ø­Ù’Ù…ÙŽÙ†Ù Ø§Ù„Ø±ÙŽÙ‘Ø­ÙÙŠÙ…
+// Ø¨ÙØ³Ù’Ù…Ù Ø§Ù„Ù„ÙŽÙ‘Ù‡Ù Ø§Ù„Ø±ÙŽÙ‘Ø­Ù’Ù…ÙŽÙ†Ù Ø§Ù„Ø±ÙŽÙ‘Ø­ÙÙŠÙ…
 // This file is part of montrs.
 // Copyright (C) 2026-Present Afsall Inc.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
@@ -59,7 +59,9 @@ impl CollectedGlyph {
             .map(|part| {
                 let mut c = part.chars();
                 match c.next() {
-                    Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+                    Some(f) => {
+                        f.to_uppercase().collect::<String>() + c.as_str()
+                    }
                     None => String::new(),
                 }
             })
@@ -129,9 +131,10 @@ impl Collection {
     /// with filled paths and should ignore stroke width/color overrides.
     pub fn style(self) -> &'static str {
         match self {
-            Collection::Lucide | Collection::Radix | Collection::Tabler | Collection::Iconoir => {
-                "stroke"
-            }
+            Collection::Lucide
+            | Collection::Radix
+            | Collection::Tabler
+            | Collection::Iconoir => "stroke",
             Collection::Phosphor | Collection::Mdi => "fill",
         }
     }
@@ -179,15 +182,19 @@ impl Collection {
                 })
                 .collect(),
             #[cfg(feature = "col-radix")]
-            Collection::Radix => table(&crate::collections::data::RADIX_ICONS),
+            Collection::Radix => table(crate::collections::data::RADIX_ICONS),
             #[cfg(feature = "col-tabler")]
-            Collection::Tabler => table(&crate::collections::data::TABLER_ICONS),
+            Collection::Tabler => table(crate::collections::data::TABLER_ICONS),
             #[cfg(feature = "col-iconoir")]
-            Collection::Iconoir => table(&crate::collections::data::ICONOIR_ICONS),
+            Collection::Iconoir => {
+                table(crate::collections::data::ICONOIR_ICONS)
+            }
             #[cfg(feature = "col-phosphor")]
-            Collection::Phosphor => table(&crate::collections::data::PHOSPHOR_ICONS),
+            Collection::Phosphor => {
+                table(crate::collections::data::PHOSPHOR_ICONS)
+            }
             #[cfg(feature = "col-mdi")]
-            Collection::Mdi => table(&crate::collections::data::MDI_ICONS),
+            Collection::Mdi => table(crate::collections::data::MDI_ICONS),
             _ => Vec::new(),
         }
     }
@@ -202,9 +209,13 @@ impl Collection {
             #[cfg(feature = "col-tabler")]
             Collection::Tabler => crate::collections::data::TABLER_ICONS.len(),
             #[cfg(feature = "col-iconoir")]
-            Collection::Iconoir => crate::collections::data::ICONOIR_ICONS.len(),
+            Collection::Iconoir => {
+                crate::collections::data::ICONOIR_ICONS.len()
+            }
             #[cfg(feature = "col-phosphor")]
-            Collection::Phosphor => crate::collections::data::PHOSPHOR_ICONS.len(),
+            Collection::Phosphor => {
+                crate::collections::data::PHOSPHOR_ICONS.len()
+            }
             #[cfg(feature = "col-mdi")]
             Collection::Mdi => crate::collections::data::MDI_ICONS.len(),
             _ => 0,

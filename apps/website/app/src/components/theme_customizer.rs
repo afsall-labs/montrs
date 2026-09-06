@@ -52,9 +52,27 @@ const PRIMARY_OPTIONS: &[(&str, &str, &str)] = &[
 
 /// (label, background hsl, foreground hsl, muted-foreground hsl, border hsl)
 const GRAY_OPTIONS: &[(&str, &str, &str, &str, &str)] = &[
-    ("Near Black", "0 0% 4%", "0 0% 98%", "240 5% 65%", "0 0% 12%"),
-    ("Zinc", "240 10% 4%", "240 6% 98%", "240 5% 65%", "240 4% 16%"),
-    ("Slate", "240 6% 4%", "210 20% 98%", "215 16% 65%", "215 16% 14%"),
+    (
+        "Near Black",
+        "0 0% 4%",
+        "0 0% 98%",
+        "240 5% 65%",
+        "0 0% 12%",
+    ),
+    (
+        "Zinc",
+        "240 10% 4%",
+        "240 6% 98%",
+        "240 5% 65%",
+        "240 4% 16%",
+    ),
+    (
+        "Slate",
+        "240 6% 4%",
+        "210 20% 98%",
+        "215 16% 65%",
+        "215 16% 14%",
+    ),
     ("Stone", "24 10% 4%", "60 8% 98%", "24 6% 64%", "20 6% 14%"),
     ("Neutral", "0 0% 9%", "0 0% 98%", "0 0% 65%", "0 0% 20%"),
 ];
@@ -83,9 +101,11 @@ fn load_cfg() -> ThemeCfg {
         if let Some(window) = web_sys::window()
             && let Ok(Some(storage)) = window.local_storage()
             && let Ok(Some(raw)) = storage.get_item(STORAGE_KEY)
-            && let Some((p, g, r)) = raw.split_once(',').and_then(|(a, rest)| {
-                rest.split_once(',').map(|(b, c)| (a, b, c))
-            }) && let (Ok(p), Ok(g), Ok(r)) =
+            && let Some((p, g, r)) =
+                raw.split_once(',').and_then(|(a, rest)| {
+                    rest.split_once(',').map(|(b, c)| (a, b, c))
+                })
+            && let (Ok(p), Ok(g), Ok(r)) =
                 (p.parse::<usize>(), g.parse::<usize>(), r.parse::<usize>())
         {
             return ThemeCfg {
@@ -148,12 +168,11 @@ fn copy_css(cfg: ThemeCfg) -> String {
     let (_, bg, fg, muted_fg, border) = GRAY_OPTIONS[cfg.gray];
     let (radius_label, radius) = RADIUS_OPTIONS[cfg.radius];
     format!(
-        "/* {radius_label} radius · primary {primary} */\n\
-         :root {{\n  --radius: {radius};\n  --background: {bg};\n  \
-         --foreground: {fg};\n  --muted-foreground: {muted_fg};\n  \
-         --border: {border};\n  --input: {border};\n  \
-         --primary: {primary};\n  --primary-foreground: {primary_fg};\n  \
-         --ring: {primary};\n}}\n"
+        "/* {radius_label} radius · primary {primary} */\n:root {{\n  \
+         --radius: {radius};\n  --background: {bg};\n  --foreground: {fg};\n  \
+         --muted-foreground: {muted_fg};\n  --border: {border};\n  --input: \
+         {border};\n  --primary: {primary};\n  --primary-foreground: \
+         {primary_fg};\n  --ring: {primary};\n}}\n"
     )
 }
 
@@ -299,27 +318,23 @@ pub fn ThemeCustomizer() -> impl IntoView {
                             base.to_string()
                         }
                     }
-                    on:click={
-                        let cfg = cfg;
-                        move |_| {
-                            crate::copy::copy_text(&copy_css(cfg.get()));
-                            copied.set(true);
-                            #[cfg(target_arch = "wasm32")]
-                            {
-                                use wasm_bindgen::prelude::*;
-                                let c2 = copied;
-                                let cb = wasm_bindgen::prelude::Closure::wrap(Box::new(
-                                    move || c2.set(false),
-                                ) as Box<dyn FnMut()>);
-                                if let Some(window) = web_sys::window() {
-                                    let _ = window
-                                        .set_timeout_with_callback_and_timeout_and_arguments_0(
-                                            cb.as_ref().unchecked_ref(),
-                                            1500,
-                                        );
-                                }
-                                cb.forget();
+                    on:click=move |_| {
+                        crate::copy::copy_text(&copy_css(cfg.get()));
+                        copied.set(true);
+                        #[cfg(target_arch = "wasm32")]
+                        {
+                            use wasm_bindgen::prelude::*;
+                            let c2 = copied;
+                            let cb = wasm_bindgen::prelude::Closure::wrap(Box::new(
+                                move || c2.set(false),
+                            ) as Box<dyn FnMut()>);
+                            if let Some(window) = web_sys::window() {
+                                let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(
+                                    cb.as_ref().unchecked_ref(),
+                                    1500,
+                                );
                             }
+                            cb.forget();
                         }
                     }
                 >

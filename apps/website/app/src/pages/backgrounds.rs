@@ -57,14 +57,34 @@ const PATTERNS: &str = r#"@layer components {
 #[component]
 pub fn Backgrounds() -> impl IntoView {
     let patterns = [
-        ("Grid", "bg-grid", "A subtle 40px grid — great for hero sections."),
-        ("Grid fade", "bg-grid-fade", "Grid with a soft radial fade-out."),
+        (
+            "Grid",
+            "bg-grid",
+            "A subtle 40px grid — great for hero sections.",
+        ),
+        (
+            "Grid fade",
+            "bg-grid-fade",
+            "Grid with a soft radial fade-out.",
+        ),
         ("Dots", "bg-dots", "Tight 18px dot matrix."),
-        ("Dots large", "bg-dots-lg", "Looser 32px dots for spacious surfaces."),
+        (
+            "Dots large",
+            "bg-dots-lg",
+            "Looser 32px dots for spacious surfaces.",
+        ),
         ("Diagonal", "bg-diagonal", "Thin 45° diagonal lines."),
-        ("Diagonal wide", "bg-diagonal-lines", "Wider spaced diagonal streaks."),
+        (
+            "Diagonal wide",
+            "bg-diagonal-lines",
+            "Wider spaced diagonal streaks.",
+        ),
         ("Boxes", "bg-boxes", "A larger 80px checker grid."),
-        ("Radial glow", "bg-radial-glow", "A soft primary-colored glow from the top."),
+        (
+            "Radial glow",
+            "bg-radial-glow",
+            "A soft primary-colored glow from the top.",
+        ),
     ];
 
     view! {

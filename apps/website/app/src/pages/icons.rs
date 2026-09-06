@@ -31,8 +31,9 @@
 use crate::copy::CopyButton;
 use leptos::prelude::*;
 use montrs_core::nav::*;
-use montrs_icons::collections::CollectedGlyph;
-use montrs_icons::{AnimatedSvg, Collection, Glyph, Icon};
+use montrs_icons::{
+    AnimatedSvg, Collection, Glyph, Icon, collections::CollectedGlyph,
+};
 use montrs_ui::prelude::*;
 
 const PAGE_SIZE: usize = 200;
@@ -74,7 +75,8 @@ fn load_mru() -> Vec<(Collection, String)> {
         if let Some(window) = web_sys::window()
             && let Ok(Some(storage)) = window.local_storage()
             && let Ok(Some(raw)) = storage.get_item("montrs-icons-mru")
-            && let Ok(items) = serde_json::from_str::<Vec<(String, String)>>(&raw)
+            && let Ok(items) =
+                serde_json::from_str::<Vec<(String, String)>>(&raw)
         {
             return items
                 .into_iter()
@@ -134,9 +136,8 @@ pub fn Icons() -> impl IntoView {
     );
     let color = RwSignal::new(query.get().get("color").unwrap_or_default());
     let category = RwSignal::new(query.get().get("cat").unwrap_or_default());
-    let animated = RwSignal::new(
-        query.get().get("anim").is_none_or(|v| v != "0"),
-    );
+    let animated =
+        RwSignal::new(query.get().get("anim").is_none_or(|v| v != "0"));
     let page = RwSignal::new(1usize);
 
     let hydrated = RwSignal::new(false);
@@ -197,11 +198,7 @@ pub fn Icons() -> impl IntoView {
 
     let total_pages = Memo::new(move |_| {
         let len = filtered.get().len();
-        if len == 0 {
-            1
-        } else {
-            (len + PAGE_SIZE - 1) / PAGE_SIZE
-        }
+        if len == 0 { 1 } else { len.div_ceil(PAGE_SIZE) }
     });
 
     let page_icons = Memo::new(move |_| {
@@ -328,7 +325,11 @@ pub fn Icons() -> impl IntoView {
 
     let stroke_val = Signal::derive(move || {
         let c = color.get();
-        if c.is_empty() { "currentColor".to_string() } else { c }
+        if c.is_empty() {
+            "currentColor".to_string()
+        } else {
+            c
+        }
     });
     let size_val = Signal::derive(move || size_px.get().to_string());
     let sw_val = Signal::derive(move || format!("{:.2}", stroke_w.get()));
@@ -758,7 +759,7 @@ pub fn Icons() -> impl IntoView {
                                             }).collect::<Vec<_>>()}
                                         </div>
                                     }.into_any()
-                                } else { view! {}.into_any() }}
+                                } else { view! { <span></span> }.into_any() }}
 
                                 <div class="mt-4">
                                     <p class="mb-2 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">"Animation"</p>
@@ -853,7 +854,11 @@ fn CustomGlyphView(
             String::new()
         } else {
             let s = stroke_width.get();
-            if s.is_empty() { "1.5".to_string() } else { s.to_string() }
+            if s.is_empty() {
+                "1.5".to_string()
+            } else {
+                s.to_string()
+            }
         }
     };
     view! {
@@ -863,8 +868,8 @@ fn CustomGlyphView(
             height=move || size2.get()
             viewBox=move || glyph.viewbox
             fill=move || glyph.fill
-            stroke=move || stroke_ok()
-            stroke-width=move || sw_ok()
+            stroke=stroke_ok
+            stroke-width=sw_ok
             stroke-linecap="round"
             stroke-linejoin="round"
             inner_html=move || glyph.svg
@@ -879,7 +884,9 @@ fn AnimatedGlyphView(
     #[prop(into)] size: TextProp,
     #[prop(into)] stroke_width: TextProp,
     #[prop(into)] stroke: TextProp,
-    #[prop(into, optional)] profile: Signal<Option<montrs_icons::AnimationProfile>>,
+    #[prop(into, optional)] profile: Signal<
+        Option<montrs_icons::AnimationProfile>,
+    >,
 ) -> impl IntoView {
     let is_fill = glyph.stroke == "none";
     let stroke_ok = move || {
@@ -895,7 +902,11 @@ fn AnimatedGlyphView(
             "1.5".to_string()
         } else {
             let s = stroke_width.get();
-            if s.is_empty() { "1.5".to_string() } else { s.to_string() }
+            if s.is_empty() {
+                "1.5".to_string()
+            } else {
+                s.to_string()
+            }
         }
     };
     view! {
@@ -903,8 +914,8 @@ fn AnimatedGlyphView(
             svg={TextProp::from(glyph.svg)}
             viewbox={TextProp::from(glyph.viewbox)}
             fill={TextProp::from(glyph.fill)}
-            stroke={TextProp::from(move || stroke_ok())}
-            stroke_width={TextProp::from(move || sw_ok())}
+            stroke={TextProp::from(stroke_ok)}
+            stroke_width={TextProp::from(sw_ok)}
             size=size
             profile=profile
         />

@@ -34,12 +34,43 @@ use montrs_icons::*;
 use montrs_ui::prelude::*;
 
 const TEMPLATES: &[(&str, &str, &str, &str)] = &[
-    ("default", "Single-app web + e2e", "montrs new my-app", "The recommended starting point: a reactive SSR web app with tests and dark mode out of the box."),
-    ("saas", "Full SaaS layout", "montrs new my-app --template saas", "Auth-ready structure with users, orgs, and billing scaffolding."),
-    ("todo", "The classic TodoPlate", "montrs new my-app --template todo", "A working CRUD app demonstrating Plates, Routes, and the ORM."),
-    ("api", "Headless API service", "montrs new my-api --template api", "A minimal axum server with health checks and structured logging."),
-    ("desktop", "Desktop shell", "montrs new my-app --template desktop", "A winit/wgpu desktop window driven by the same AppSpec."),
-    ("monorepo", "Workspace with multiple apps", "montrs new my-app --template monorepo", "Shared packages and multiple apps in one workspace."),
+    (
+        "default",
+        "Single-app web + e2e",
+        "montrs new my-app",
+        "The recommended starting point: a reactive SSR web app with tests \
+         and dark mode out of the box.",
+    ),
+    (
+        "saas",
+        "Full SaaS layout",
+        "montrs new my-app --template saas",
+        "Auth-ready structure with users, orgs, and billing scaffolding.",
+    ),
+    (
+        "todo",
+        "The classic TodoPlate",
+        "montrs new my-app --template todo",
+        "A working CRUD app demonstrating Plates, Routes, and the ORM.",
+    ),
+    (
+        "api",
+        "Headless API service",
+        "montrs new my-api --template api",
+        "A minimal axum server with health checks and structured logging.",
+    ),
+    (
+        "desktop",
+        "Desktop shell",
+        "montrs new my-app --template desktop",
+        "A winit/wgpu desktop window driven by the same AppSpec.",
+    ),
+    (
+        "monorepo",
+        "Workspace with multiple apps",
+        "montrs new my-app --template monorepo",
+        "Shared packages and multiple apps in one workspace.",
+    ),
 ];
 
 #[component]
