@@ -485,7 +485,8 @@ fn MorphDemo() -> impl IntoView {
         (0..48)
             .map(|i| {
                 let th = i as f64 / 48.0 * std::f64::consts::TAU;
-                let r = 30.0 + p * 22.0 * (5.0 * th + std::f64::consts::PI).cos();
+                let r =
+                    30.0 + p * 22.0 * (5.0 * th + std::f64::consts::PI).cos();
                 let x = 100.0 + r * th.cos();
                 let y = 100.0 + r * th.sin();
                 format!("{:.1},{:.1}", x, y)
@@ -571,7 +572,12 @@ fn GestureDemo() -> impl IntoView {
 
     let hover_scale = move || if hovered.get() { 1.05 } else { 1.0 };
     let press_scale = move || if pressed.get() { 0.94 } else { 1.0 };
-    let drag_style = move || format!("transform: {};", transform_2d(mvx_style.get(), mvy_style.get(), 1.0, 0.0));
+    let drag_style = move || {
+        format!(
+            "transform: {};",
+            transform_2d(mvx_style.get(), mvy_style.get(), 1.0, 0.0)
+        )
+    };
 
     let press_up_leave = press_up.clone();
     let pan_up_leave = on_pan_up.clone();

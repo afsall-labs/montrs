@@ -90,7 +90,7 @@ pub fn Home() -> impl IntoView {
 #[component]
 fn Hero() -> impl IntoView {
     view! {
-        <section class="dot-grid glow-orange relative overflow-hidden">
+        <section class="dot-grid hero-glow relative overflow-hidden">
             <div class="page-container pb-20 pt-16 sm:pt-24">
                 <div class="mx-auto max-w-3xl text-center">
                     <div class="flex justify-center">

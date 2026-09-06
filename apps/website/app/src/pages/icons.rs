@@ -361,7 +361,8 @@ pub fn Icons() -> impl IntoView {
     let prev_disabled = move || page.get() <= 1;
     let next_disabled = move || page.get() >= total_pages.get();
     let go_prev = move |_| page.update(|p| *p = p.saturating_sub(1));
-    let go_next = move |_| page.update(|p| *p = (*p + 1).min(total_pages.get()));
+    let go_next =
+        move |_| page.update(|p| *p = (*p + 1).min(total_pages.get()));
 
     let anim_choices = [
         ("auto", "Auto"),

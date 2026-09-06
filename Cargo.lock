@@ -9536,6 +9536,7 @@ dependencies = [
  "tracing-subscriber",
  "tw_merge",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
 ]
 

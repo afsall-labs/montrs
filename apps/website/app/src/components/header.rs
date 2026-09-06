@@ -43,15 +43,8 @@ use montrs_ui::prelude::*;
 #[component]
 pub fn Header() -> impl IntoView {
     let theme = use_theme();
-    let theme_open = RwSignal::new(false);
     let mobile_open = RwSignal::new(false);
     let navigate = use_navigate();
-
-    let theme_icon = Memo::new(move |_| match theme.get() {
-        ThemeMode::Light => Glyph::Sun,
-        ThemeMode::Dark => Glyph::Moon,
-        ThemeMode::System => Glyph::Monitor,
-    });
 
     let nav_links = [
         ("/auth", "Auth"),
@@ -74,9 +67,10 @@ pub fn Header() -> impl IntoView {
 
     let ui_open = RwSignal::new(false);
 
+    // Segmented toggle order: Light · Device · Dark (device = system default).
     let theme_modes = [
-        ("System", ThemeMode::System, Glyph::Monitor),
         ("Light", ThemeMode::Light, Glyph::Sun),
+        ("Device", ThemeMode::System, Glyph::Monitor),
         ("Dark", ThemeMode::Dark, Glyph::Moon),
     ];
 
@@ -168,73 +162,38 @@ pub fn Header() -> impl IntoView {
                     </div>
 
                     <div class="relative flex items-center gap-2">
-                        <a
-                            href="https://github.com/montrs/montrs"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="hidden items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:inline-flex"
-                        >
-                            <Icon glyph=Glyph::Star class="h-3.5 w-3.5" />
-                            "Star"
-                        </a>
+                        <GithubStars />
 
-                        // Theme toggle: defaults to System, with explicit
-                        // Light/Dark choices persisted to localStorage.
-                        <div class="relative">
-                            <button
-                                type="button"
-                                class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                                on:click=move |_| theme_open.update(|o| *o = !*o)
-                                aria-label="Toggle theme"
-                                aria-haspopup="menu"
-                                aria-expanded=move || theme_open.get()
-                            >
-                                <Icon glyph=Signal::from(theme_icon) class="h-4 w-4" />
-                            </button>
-
-                            <Show when=move || theme_open.get()>
-                                <div
-                                    class="fixed inset-0 z-40"
-                                    on:click=move |_| theme_open.set(false)
-                                ></div>
-                                <div
-                                    class="absolute right-0 z-50 mt-2 w-36 rounded-md border border-border bg-popover p-1 shadow-lg"
-                                    role="menu"
-                                    aria-label="Theme"
-                                >
-                                    {theme_modes.into_iter().map(|(label, mode, icon)| {
-                                        let mode2 = mode;
-                                        let is_selected = move || theme.get() == mode2;
-                                        let select = move |_| {
-                                            theme.set(mode2);
-                                            theme_open.set(false);
-                                        };
-                                        view! {
-                                            <button
-                                                type="button"
-                                                role="menuitem"
-                                                class=move || {
-                                                    let base = "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors";
-                                                    if is_selected() {
-                                                        format!("{base} bg-accent font-medium text-accent-foreground")
-                                                    } else {
-                                                        format!("{base} text-muted-foreground hover:bg-accent hover:text-accent-foreground")
-                                                    }
-                                                }
-                                                on:click=select
-                                            >
-                                                <Icon glyph=icon class="h-4 w-4" />
-                                                {label}
-                                                <span class="ml-auto flex items-center">
-                                                    <Icon glyph=Glyph::Check class=move || {
-                                                        if is_selected() { "h-3.5 w-3.5" } else { "h-3.5 w-3.5 opacity-0" }
-                                                    } />
-                                                </span>
-                                            </button>
-                                        }
-                                    }).collect::<Vec<_>>()}
-                                </div>
-                            </Show>
+                        // Theme toggle: Light / System / Dark segmented pill
+                        // (shark-ui style), defaults to System.
+                        <div class="theme-toggle" role="group" aria-label="Theme">
+                            <span
+                                class="theme-toggle-indicator"
+                                style=move || format!(
+                                    "--theme-pos: {};",
+                                    match theme.get() {
+                                        ThemeMode::Light => 0,
+                                        ThemeMode::System => 1,
+                                        ThemeMode::Dark => 2,
+                                    }
+                                )
+                            ></span>
+                            {theme_modes.into_iter().map(|(label, mode, icon)| {
+                                let mode2 = mode;
+                                let is_active = move || theme.get() == mode2;
+                                let select = move |_| theme.set(mode2);
+                                view! {
+                                    <button
+                                        type="button"
+                                        aria-label=label
+                                        aria-pressed=is_active
+                                        title=label
+                                        on:click=select
+                                    >
+                                        <Icon glyph=icon class="h-4 w-4" />
+                                    </button>
+                                }
+                            }).collect::<Vec<_>>()}
                         </div>
 
                         // Mobile menu toggle
@@ -277,4 +236,88 @@ pub fn Header() -> impl IntoView {
                 </div>
             </header>
         }
+}
+
+/// GitHub Star badge with a live star count fetched from the GitHub API
+/// (client-side only; renders a plain "Star" link while SSR / fetching).
+#[component]
+fn GithubStars() -> impl IntoView {
+    const REPO: &str = "https://github.com/afsall-inc/montrs";
+    #[allow(dead_code)] // only referenced in the wasm32 fetch block
+    const API: &str = "https://api.github.com/repos/afsall-inc/montrs";
+    let stars = RwSignal::new(None::<u32>);
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        let fetched = RwSignal::new(false);
+        let s = stars;
+        Effect::new(move |_| {
+            if fetched.get_untracked() {
+                return;
+            }
+            fetched.set(true);
+            leptos::task::spawn_local(async move {
+                use wasm_bindgen::JsCast;
+                use wasm_bindgen_futures::JsFuture;
+                let Some(window) = web_sys::window() else {
+                    return;
+                };
+                let Ok(resp) = JsFuture::from(window.fetch_with_str(API)).await
+                else {
+                    return;
+                };
+                let Ok(resp) = resp.dyn_into::<web_sys::Response>() else {
+                    return;
+                };
+                let Ok(text) = resp.text() else {
+                    return;
+                };
+                let Ok(text) = JsFuture::from(text).await else {
+                    return;
+                };
+                let Some(text) = text.as_string() else {
+                    return;
+                };
+                let Ok(json) = serde_json::from_str::<serde_json::Value>(&text)
+                else {
+                    return;
+                };
+                let n = json
+                    .get("stargazers_count")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0) as u32;
+                s.set(Some(n));
+            });
+        });
+    }
+
+    let label = move || match stars.get() {
+        Some(n) if n > 0 => format!("Star · {}", format_count(n)),
+        _ => "Star".to_string(),
+    };
+
+    view! {
+        <a
+            href=REPO
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hidden items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:inline-flex"
+        >
+            <Icon glyph=Glyph::Star class="h-3.5 w-3.5" />
+            {label}
+        </a>
+    }
+}
+
+fn format_count(n: u32) -> String {
+    if n >= 1_000 {
+        let k = n as f64 / 1_000.0;
+        if k >= 10.0 {
+            format!("{:.0}k", k)
+        } else {
+            format!("{:.1}k", k)
+        }
+    } else {
+        n.to_string()
+    }
 }

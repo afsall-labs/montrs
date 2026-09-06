@@ -85,14 +85,15 @@ pub fn AnimatedSvg(
     // `stroke="none"` in their data; they should not get a stroke width and
     // default to a visible (non-draw) animation.
     let stroke_prof = stroke_val.clone();
-    let profile =
-        Memo::new(move |_| profile.get().unwrap_or_else(|| {
+    let profile = Memo::new(move |_| {
+        profile.get().unwrap_or_else(|| {
             if stroke_prof.get() == "none" {
                 AnimationProfile::Pulse
             } else {
                 AnimationProfile::PathDraw
             }
-        }));
+        })
+    });
 
     // Empty props (omitted) fall back to the Lucide defaults.
     let size_ok = move || {
